@@ -5,6 +5,7 @@ import "os"
 type Config struct {
 	root string
 	wal  string
+	listen string
 }
 
 func NewConfig() (*Config, error) {
@@ -26,5 +27,7 @@ func NewConfig() (*Config, error) {
 			}
 		}
 	}
+	//http服务
+	c.listen = "127.0.0.1:8000"
 	return &c, nil
 }

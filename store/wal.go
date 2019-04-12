@@ -26,11 +26,6 @@ type Wal struct {
 	Entry  *Entry     `json:"entry"`
 }
 
-//key不存在
-type NullError struct {
-	err error
-}
-
 //是否过期
 func (entry *Entry) IsExpired() bool {
 	return entry.Expire > 0 && entry.Expire < time.Now().Unix()
