@@ -3,6 +3,7 @@ package core
 import (
 	"Calla/store"
 	"fmt"
+	"time"
 )
 
 func Run() error {
@@ -21,10 +22,19 @@ func Run() error {
 	//提供http服务
 	go func() {
 		ha := &HttpAccess{st}
-		if err := ha.Listen(cfg.listen); err != nil {
+		if err := ha.Listen(cfg.http); err != nil {
 			fmt.Println(err)
 		}
 		quit <- 1
+	}()
+	go func() {
+		tick := time.Tick(time.Duration(5) * time.Second)
+		for {
+			select {
+			case <-tick:
+				fmt.Println("tick")
+			}
+		}
 	}()
 	//服务退出
 	<-quit

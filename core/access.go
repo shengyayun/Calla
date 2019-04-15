@@ -31,6 +31,9 @@ func (ha *HttpAccess) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result = HttpResult{301, "Parse fail : " + err.Error()} //表单异常
 	} else {
 		switch strings.ToUpper(r.FormValue("do")) {
+		case "POLL":
+			//心跳
+			result = HttpResult{200, "OK"}
 		case "PUT":
 			var ttl int64 = 0
 			if r.FormValue("expire") != "" { //传入了expire
