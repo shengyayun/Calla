@@ -10,33 +10,36 @@ import (
 	"time"
 )
 
-type HttpAccess struct {
+//HTTPAccess 解析自request
+type HTTPAccess struct {
 	store *store.Store
 }
 
-type HttpResult struct {
+//HTTPResult 作为http的json返回
+type HTTPResult struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 }
 
-func (ha *HttpAccess) Listen(addr string) (err error) {
+//Listen 用于监听地址
+func (ha *HTTPAccess) Listen(addr string) (err error) {
 	err = http.ListenAndServe(addr, ha)
 	return
 }
 
-func (ha *HttpAccess) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var result HttpResult //正常返回
+func (ha *HTTPAccess) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var result HTTPResult //正常返回
 	err := r.ParseForm()  //异常返回
 	if err != nil {
-		result = HttpResult{301, "Parse fail : " + err.Error()} //表单异常
+		result = HTTPResult{301, "Parse fail : " + err.Error()} //表单异常
 	} else {
 		switch strings.ToUpper(r.FormValue("do")) {
 		case "PUT":
-			var ttl int64 = 0
+			var ttl int64
 			if r.FormValue("expire") != "" { //传入了expire
 				seconds, err := strconv.Atoi(r.FormValue("expire"))
 				if err != nil {
-					result = HttpResult{302, "Convert fail : " + err.Error()} //过期时间异常
+					result = HTTPResult{302, "Convert fail : " + err.Error()} //过期时间异常
 				} else {
 					if seconds > 0 {
 						ttl = time.Now().Add(time.Duration(seconds) * time.Second).Unix()
@@ -44,29 +47,29 @@ func (ha *HttpAccess) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if result.Code == 0 {
-				err = ha.store.Put(&store.Entry{r.FormValue("key"), r.FormValue("value"), ttl})
+				err = ha.store.Put(&store.Entry{Key: r.FormValue("key"), Value: r.FormValue("value"), Expire: ttl})
 				if err != nil { //Put异常
-					result = HttpResult{303, "Put fail : " + err.Error()}
+					result = HTTPResult{303, "Put fail : " + err.Error()}
 				} else { //操作成功
-					result = HttpResult{200, "Put success"}
+					result = HTTPResult{200, "Put success"}
 				}
 			}
 		case "GET":
 			value, err := ha.store.Get(r.FormValue("key"))
 			if err != nil {
-				result = HttpResult{303, "Get fail : " + err.Error()}
+				result = HTTPResult{303, "Get fail : " + err.Error()}
 			} else {
-				result = HttpResult{200, value}
+				result = HTTPResult{200, value}
 			}
 		case "DEL":
 			err := ha.store.Del(r.FormValue("key"))
 			if err != nil {
-				result = HttpResult{303, "Del fail : " + err.Error()}
+				result = HTTPResult{303, "Del fail : " + err.Error()}
 			} else {
-				result = HttpResult{200, "Del success"}
+				result = HTTPResult{200, "Del success"}
 			}
 		default:
-			result = HttpResult{404, "Unknow action"}
+			result = HTTPResult{404, "Unknow action"}
 		}
 	}
 	if str, err := json.Marshal(result); err != nil {

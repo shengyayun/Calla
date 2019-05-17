@@ -2,12 +2,14 @@ package core
 
 import "os"
 
+//Config 配置
 type Config struct {
 	root string
 	wal  string
 	http string
 }
 
+//NewConfig 生成新配置
 func NewConfig() (*Config, error) {
 	c := Config{}
 	//文件目录

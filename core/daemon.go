@@ -6,9 +6,10 @@ import (
 	"time"
 )
 
+//Run 启动守护进程
 func Run() error {
 	//加载配置
-	cfg, err := NewConfig();
+	cfg, err := NewConfig()
 	//服务退出管道
 	quit := make(chan int, 1)
 	if err != nil {
@@ -21,7 +22,7 @@ func Run() error {
 	}
 	//提供http服务
 	go func() {
-		ha := &HttpAccess{st}
+		ha := &HTTPAccess{st}
 		if err := ha.Listen(cfg.http); err != nil {
 			fmt.Println(err)
 		}
