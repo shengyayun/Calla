@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+//Store 仓库
 type Store struct {
 	list   map[string]*Entry
 	path   string
@@ -18,11 +19,12 @@ type Store struct {
 	cursor int32
 }
 
+//NewStore 创建仓库实例
 func NewStore(path string) *Store {
 	return &Store{make(map[string]*Entry), path, 1, 0}
 }
 
-//通过wal日志加载数据
+//Load 通过wal日志加载数据
 func (store *Store) Load() error {
 	//查找wal目录下的全部文件
 	files, err := ioutil.ReadDir(store.path)
@@ -51,30 +53,31 @@ func (store *Store) Load() error {
 			if err = json.Unmarshal(line, &wal); err != nil {
 				return err
 			}
-			store.cursor = wal.Id
+			store.cursor = wal.ID
 			switch wal.Method {
-			case WAL_METHOD_PUT:
+			case WalMethodPut:
 				store.list[wal.Entry.Key] = wal.Entry
-			case WAL_METHOD_DEL:
+			case WalMethodDel:
 				delete(store.list, wal.Entry.Key)
 			default:
 				continue
 			}
 		}
 	}
+	store.Put(&Entry{Key: "greet", Value: "hello", Expire: 0})
 	return nil
 }
 
-//put操作
+//Put 操作
 func (store *Store) Put(entry *Entry) error {
-	if err := store.append(WAL_METHOD_PUT, entry); err != nil {
+	if err := store.append(WalMethodPut, entry); err != nil {
 		return err
 	}
 	store.list[entry.Key] = entry
 	return nil
 }
 
-//get操作
+//Get 操作
 func (store *Store) Get(key string) (string, error) {
 	for k, v := range store.list {
 		if k == key {
@@ -87,9 +90,9 @@ func (store *Store) Get(key string) (string, error) {
 	return "", errors.New(key + "'s value is not found")
 }
 
-//del操作
+//Del 操作
 func (store *Store) Del(key string) error {
-	if err := store.append(WAL_METHOD_DEL, &Entry{key, "", 0}); err != nil {
+	if err := store.append(WalMethodDel, &Entry{key, "", 0}); err != nil {
 		return err
 	}
 	delete(store.list, key)
