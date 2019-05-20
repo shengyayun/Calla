@@ -1,4 +1,4 @@
-package store
+package vo
 
 import (
 	"encoding/json"
@@ -29,7 +29,7 @@ type Wal struct {
 	Term   int32      `json:"term"`   //任期
 	ID     int32      `json:"id"`     //日志
 	Method MethodType `json:"method"` //操作
-	Entry  *Entry     `json:"entry"`
+	Entry  Entry      `json:"entry"`
 }
 
 //IsExpired 是否过期

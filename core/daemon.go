@@ -10,8 +10,6 @@ import (
 func Run() error {
 	//加载配置
 	cfg, err := NewConfig()
-	//服务退出管道
-	quit := make(chan int, 1)
 	if err != nil {
 		return err
 	}
@@ -20,6 +18,9 @@ func Run() error {
 	if err := st.Load(); err != nil {
 		return err
 	}
+	//st.Test()
+	//服务退出管道
+	quit := make(chan int, 1)
 	//提供http服务
 	go func() {
 		ha := &HTTPAccess{st}

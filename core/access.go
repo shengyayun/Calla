@@ -2,6 +2,7 @@ package core
 
 import (
 	"Calla/store"
+	"Calla/store/vo"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,19 +11,17 @@ import (
 	"time"
 )
 
-//HTTPAccess 解析自request
 type HTTPAccess struct {
 	store *store.Store
 }
 
-//HTTPResult 作为http的json返回
 type HTTPResult struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 }
 
-//Listen 用于监听地址
 func (ha *HTTPAccess) Listen(addr string) (err error) {
+	fmt.Println("listen on " + addr + "...")
 	err = http.ListenAndServe(addr, ha)
 	return
 }
@@ -47,7 +46,7 @@ func (ha *HTTPAccess) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			if result.Code == 0 {
-				err = ha.store.Put(&store.Entry{Key: r.FormValue("key"), Value: r.FormValue("value"), Expire: ttl})
+				err = ha.store.Put(vo.Entry{Key: r.FormValue("key"), Value: r.FormValue("value"), Expire: ttl})
 				if err != nil { //Put异常
 					result = HTTPResult{303, "Put fail : " + err.Error()}
 				} else { //操作成功

@@ -1,9 +1,11 @@
 package store
 
 import (
+	"Calla/store/dict"
+	"Calla/store/vo"
 	"bufio"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -13,7 +15,7 @@ import (
 
 //Store 仓库
 type Store struct {
-	list   map[string]*Entry
+	engine Engine
 	path   string
 	term   int32
 	cursor int32
@@ -21,7 +23,7 @@ type Store struct {
 
 //NewStore 创建仓库实例
 func NewStore(path string) *Store {
-	return &Store{make(map[string]*Entry), path, 1, 0}
+	return &Store{dict.New(), path, 1, 0}
 }
 
 //Load 通过wal日志加载数据
@@ -49,59 +51,56 @@ func (store *Store) Load() error {
 				}
 				return err
 			}
-			wal := Wal{}
+			wal := vo.Wal{}
 			if err = json.Unmarshal(line, &wal); err != nil {
 				return err
 			}
 			store.cursor = wal.ID
 			switch wal.Method {
-			case WalMethodPut:
-				store.list[wal.Entry.Key] = wal.Entry
-			case WalMethodDel:
-				delete(store.list, wal.Entry.Key)
+			case vo.WalMethodPut:
+				if err = store.engine.Put(wal.Entry); err != nil {
+					return err
+				}
+			case vo.WalMethodDel:
+				if err = store.engine.Del(wal.Entry.Key); err != nil {
+					return err
+				}
 			default:
 				continue
 			}
 		}
 	}
-	store.Put(&Entry{Key: "greet", Value: "hello", Expire: 0})
 	return nil
 }
 
 //Put 操作
-func (store *Store) Put(entry *Entry) error {
-	if err := store.append(WalMethodPut, entry); err != nil {
+func (store *Store) Put(entry vo.Entry) error {
+	if err := store.append(vo.WalMethodPut, entry); err != nil {
 		return err
 	}
-	store.list[entry.Key] = entry
-	return nil
+	return store.engine.Put(entry)
 }
 
 //Get 操作
 func (store *Store) Get(key string) (string, error) {
-	for k, v := range store.list {
-		if k == key {
-			if !v.IsExpired() {
-				return v.Value, nil
-			}
-			break
-		}
-	}
-	return "", errors.New(key + "'s value is not found")
+	return store.engine.Get(key)
 }
 
 //Del 操作
 func (store *Store) Del(key string) error {
-	if err := store.append(WalMethodDel, &Entry{key, "", 0}); err != nil {
+	if err := store.append(vo.WalMethodDel, vo.Entry{key, "", 0}); err != nil {
 		return err
 	}
-	delete(store.list, key)
+	if err := store.engine.Del(key); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (store *Store) append(method MethodType, entry *Entry) error {
+//wal日志添加
+func (store *Store) append(method vo.MethodType, entry vo.Entry) error {
 	store.cursor++
-	wal := Wal{store.term, store.cursor, method, entry}
+	wal := vo.Wal{store.term, store.cursor, method, entry}
 	path := store.path + "/" + time.Now().Format("2006010215") + ".wal"
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0777)
 	if err != nil && os.IsNotExist(err) { //文件不存在
@@ -117,4 +116,20 @@ func (store *Store) append(method MethodType, entry *Entry) error {
 		return err
 	}
 	return nil
+}
+
+//测试用
+func (store *Store) Test() {
+	if err := store.Put(vo.Entry{Key: "Greet", Value: "Hello", Expire: 0}); err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(store.Get("Greet"))
+	if err := store.Put(vo.Entry{Key: "Greet", Value: "World", Expire: 0}); err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(store.Get("Greet"))
+	if err := store.Del("Greet"); err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(store.Get("Greet"))
 }
