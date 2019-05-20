@@ -23,7 +23,8 @@ type Store struct {
 
 //NewStore 创建仓库实例
 func NewStore(path string) *Store {
-	return &Store{dict.New(), path, 1, 0}
+	eg := dict.New()
+	return &Store{&eg, path, 1, 0} //dict中实现接口的方法为指针方法，所以dict的指针对象才满足接口Engine要求
 }
 
 //Load 通过wal日志加载数据
@@ -119,7 +120,7 @@ func (store *Store) append(method vo.MethodType, entry vo.Entry) error {
 }
 
 //测试用
-func (store *Store) Test() {
+func (store *Store) Test(quit chan int) {
 	if err := store.Put(vo.Entry{Key: "Greet", Value: "Hello", Expire: 0}); err != nil {
 		fmt.Println(err)
 	}
@@ -132,4 +133,5 @@ func (store *Store) Test() {
 		fmt.Println(err)
 	}
 	fmt.Println(store.Get("Greet"))
+	quit <- 1
 }

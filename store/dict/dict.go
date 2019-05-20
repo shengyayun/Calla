@@ -16,13 +16,13 @@ func New() Dict {
 }
 
 //Put 添加数据
-func (dict Dict) Put(entry vo.Entry) error {
+func (dict *Dict) Put(entry vo.Entry) error {
 	dict.list[entry.Key] = entry
 	return nil
 }
 
 //Get 添加数据
-func (dict Dict) Get(key string) (string, error) {
+func (dict *Dict) Get(key string) (string, error) {
 	for k, v := range dict.list {
 		if k == key {
 			if !v.IsExpired() {
@@ -35,7 +35,7 @@ func (dict Dict) Get(key string) (string, error) {
 }
 
 //Del 删除数据
-func (dict Dict) Del(key string) error {
+func (dict *Dict) Del(key string) error {
 	delete(dict.list, key)
 	return nil
 }

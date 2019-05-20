@@ -30,16 +30,16 @@ func New() Tree {
 }
 
 //Put 添加数据
-func (tree Tree) Put(entry vo.Entry) error {
+func (tree *Tree) Put(entry vo.Entry) error {
 	return errors.New("ToDo")
 }
 
 //Get 添加数据
-func (tree Tree) Get(key string) (string, error) {
+func (tree *Tree) Get(key string) (string, error) {
 	return "", errors.New("ToDo")
 }
 
 //Del 删除数据
-func (tree Tree) Del(key string) error {
+func (tree *Tree) Del(key string) error {
 	return errors.New("ToDo")
 }

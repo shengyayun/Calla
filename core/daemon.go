@@ -18,7 +18,6 @@ func Run() error {
 	if err := st.Load(); err != nil {
 		return err
 	}
-	//st.Test()
 	//服务退出管道
 	quit := make(chan int, 1)
 	//提供http服务
@@ -38,6 +37,9 @@ func Run() error {
 			}
 		}
 	}()
+	//Test
+	//st.Test(quit)
+
 	//服务退出
 	<-quit
 	return nil
