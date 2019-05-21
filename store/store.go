@@ -23,8 +23,7 @@ type Store struct {
 
 //NewStore 创建仓库实例
 func NewStore(path string) *Store {
-	eg := dict.New()
-	return &Store{&eg, path, 1, 0} //dict中实现接口的方法为指针方法，所以dict的指针对象才满足接口Engine要求
+	return &Store{dict.New(), path, 1, 0} //dict中实现接口的方法为指针方法，所以dict的指针对象才满足接口Engine要求
 }
 
 //Load 通过wal日志加载数据

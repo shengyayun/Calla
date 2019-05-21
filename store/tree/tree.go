@@ -25,8 +25,8 @@ type Tree struct {
 }
 
 //New 返回一棵空树
-func New() Tree {
-	return Tree{root: make([]Branch, 0)}
+func New() *Tree {
+	return &Tree{root: make([]Branch, 0)}
 }
 
 //Put 添加数据

@@ -11,8 +11,8 @@ type Dict struct {
 }
 
 //New 返回一棵空树
-func New() Dict {
-	return Dict{list: make(map[string]vo.Entry)}
+func New() *Dict {
+	return &Dict{list: make(map[string]vo.Entry)}
 }
 
 //Put 添加数据
